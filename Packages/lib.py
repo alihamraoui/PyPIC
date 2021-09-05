@@ -6,11 +6,10 @@ def parse_PDB(file):
     """
     This function parse pdb file and return Biopython pdb object
     input : pdb file.
-    output : .
+    output : Bio.pdb object contain pdb structure.
     """
     parser=PDBParser()
-    chains =[]
-    structure = parser.get_structure(file,file)
+    structure = parser.get_structure('tmp',file)
     model = structure[0]
     return model 
 
@@ -18,7 +17,7 @@ def calc_dis (atom1,atom2):
     """
     This function calculate distance between two atoms
     input : atoms object of class Bio.pdb.
-    output : Bio.pdb object contain pdb structure.
+    output : distance between atoms (Angchtrom).
     """
     no_inter_atom = ["CB", "CD", "CD1", "CD2", "CE", "CE1", "CH2",
                     "CE2", "CE3", "CG", "CG1", "CG2","CZ", "CZ2", "CZ3", "SD"]

@@ -1,3 +1,4 @@
+from numpy.lib.shape_base import tile
 from Packages.lib import *
 from tabulate import tabulate
 import argparse
@@ -34,15 +35,41 @@ def main ():
         try : 
             model = parse_PDB(args.pdbfile)
         except : 
-            sys.stderr.write("Error attempting to load : file does not exist :  %s\n" % args.pdbfile )
+            sys.stderr.write("Error attempting to load  %s\n" % args.pdbfile )
             sys.exit(1)
     else:
         sys.stderr.write("Error : structure file extension not recognized, it needs to be .pdb \n")
         sys.exit(1)
 
-    inter_hydr = hydrophobic(model)
-    print('Hydrophobic Interactions within 5 Angstroms')
-    print(tabulate(inter_hydr, headers=['Residue', 'Position', 'Chain','Residue', 'Position', 'Chain', 'Distance (A)'], tablefmt='orgtbl'))
+    table_hydrophobic = hydrophobic(model)
+    headers=['Residue', 'Position', 'Chain','Residue', 'Position', 'Chain', 'Distance (A)']
+    title = ['\n ' + '\033[1m' + 'Hydrophobic Interactions within 5 Angstroms' + '\033[0m']
+    table = tabulate(table_hydrophobic, headers, floatfmt=(".2f"), tablefmt="fancy_grid")
+
+
+    """ Output """
+
+    print(tabulate([],headers=title, tablefmt="pipe"))
+    print(table)
+
+    """ """
+
+    """ Repporting """
+
+    #reporting(table)
+
+    """ """
+
+
+    tsv = True
+    if tsv : 
+        try : 
+            tsv_table = tabulate(table_hydrophobic, headers, floatfmt=(".2f"), tablefmt="tsv")
+            text_file=open("test/results/table.tsv","w")
+            text_file.write(tsv_table)
+            text_file.close()
+        except : 
+            sys.stderr.write("Error in writing tsv file")
 
 if __name__ == '__main__':
     try:

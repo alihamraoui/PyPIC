@@ -1,0 +1,23 @@
+Residue  	  Position	Chain  	Residue  	  Position	Chain  	  Distance (A)
+ILE      	         2	A      	VAL      	         3	A      	          4.91
+ILE      	         2	A      	LEU      	        16	A      	          4.55
+ILE      	         2	A      	TYR      	        19	A      	          4.80
+PHE      	         1	B      	VAL      	         2	B      	          4.95
+PHE      	         1	B      	ALA      	        14	B      	          4.52
+PHE      	         1	B      	LEU      	        17	B      	          4.80
+PHE      	         1	B      	VAL      	        18	B      	          4.11
+VAL      	         2	B      	ALA      	        14	B      	          4.65
+VAL      	         2	B      	VAL      	        18	B      	          3.70
+LEU      	         6	B      	LEU      	        11	B      	          4.16
+LEU      	         6	B      	ALA      	        14	B      	          4.80
+LEU      	        11	B      	LEU      	        15	B      	          4.93
+LEU      	        11	B      	TYR      	        26	B      	          4.66
+VAL      	        12	B      	PHE      	        24	B      	          4.96
+VAL      	        12	B      	TYR      	        26	B      	          4.49
+LEU      	        15	B      	PHE      	        24	B      	          4.45
+LEU      	        15	B      	TYR      	        26	B      	          4.42
+TYR      	        16	B      	LEU      	        17	B      	          4.90
+TYR      	        16	B      	PHE      	        24	B      	          4.79
+LEU      	        17	B      	VAL      	        18	B      	          4.97
+PHE      	        24	B      	TYR      	        26	B      	          4.33
+TYR      	        26	B      	PRO      	        28	B      	          4.51
