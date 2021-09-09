@@ -39,3 +39,5 @@ The above example computes the hydrophobic interactions in `3i40.pdb`, displays 
 
 #### Binder 
 ## envirenement.yml
+## doc string
+## pip20 et pip8
