@@ -37,3 +37,11 @@ The above example computes the hydrophobic interactions in `3i40.pdb`, displays 
 - cation-pi interactions
 - hydrogen bonds (use results with caution)
 
+#### Binder 
+## envirenement.yml
+## doc string
+## pip20 et pip8
+
+
+https://python.sdv.univ-paris-diderot.fr/15_bonnes_pratiques/
+pyling script
