@@ -44,3 +44,4 @@ The above example computes the hydrophobic interactions in `3i40.pdb`, displays 
 
 
 https://python.sdv.univ-paris-diderot.fr/15_bonnes_pratiques/
+pyling script
