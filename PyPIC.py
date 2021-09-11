@@ -23,9 +23,15 @@ def parse_args() :
                         help='Checking for Disulphide Bridges')
 
     parser.add_argument('-mmh', dest='mmhydrogenes', action='store_true',
-                        help='Checking for main main Hydrogen bond')
+                        help='Checking for main chain-main chain Hydrogen bond')
 
-    parser.add_argument('-tsv', metavar='', dest='tsv', type=str,
+    parser.add_argument('-smh', dest='smhydrogenes', action='store_true',
+                        help='Checking for side chain-main chain Hydrogen bond')
+
+    parser.add_argument('-ssh', dest='sshydrogenes', action='store_true',
+                        help='Checking for side chain-side chain Hydrogen bond')
+
+    parser.add_argument('-tsv', dest='tsv', action='store_true',
                         help='Export the result tables in tsv format')
 
     parser.add_argument('-option', metavar='option', dest='intra', type=str, default="both", choices=['intra', 'inter', 'both'],
@@ -51,26 +57,52 @@ def main ():
         sys.stderr.write("Error : structure file extension not recognized, it needs to be .pdb \n")
         sys.exit(1)
 
+    table_mmh=[]
+    table_smh=[]
+    table_ssh=[]
+    for chain in model.get_list():
+        for res1 in chain.get_list():
+            for res2 in chain.get_list():
+
+                if args.mmhydrogenes:
+                    mmh = main_main_hydrogene(res1, res2)
+                    for bond in mmh :
+                        table_mmh.append(bond)
+
+                if args.smhydrogenes:
+                    smh = side_main_hydrogene(res1, res2)
+                    for bond in smh :
+                        table_smh.append(bond)
+
+                if args.sshydrogenes:
+                    ssh = side_side_hydrogene(res1, res2)
+                    for bond in ssh :
+                        table_ssh.append(bond)
     if args.hydrophob :
-        table= hydrophobic(model)
-        headers=['Residue', 'Position', 'Chain','Residue', 'Position', 'Chain', 'Distance (A)']
-        title = ['\n ' + '\033[1m' + 'Hydrophobic Interactions within 5 Angstroms' + '\033[0m']
-        output(table,headers,title)
+        table_hydrophobic=hydrophobic(model)
+        headers_hydrophobic=['Residue', 'Position', 'Chain','Residue', 'Position', 'Chain', 'Distance (A)']
+        title_hydrophobic = ['\n ' + '\033[1m' + 'Hydrophobic Interactions within 5 Angstroms' + '\033[0m']
+        output(table_hydrophobic, headers_hydrophobic, title_hydrophobic)
+        if args.tsv: tsv_fun (table_hydrophobic, headers_hydrophobic, 'Hydrophobic')
 
     if args.mmhydrogenes:
-        table= main_main_hydrogene( model)
-        headers=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
-        title = ['\n ' + '\033[1m' + 'Main-Main chain Hydrogene bonds' + '\033[0m']
-        output(table,headers,title)
+        headers_mmh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
+        title_mmh = ['\n ' + '\033[1m' + 'Main Chain-Main Chain Hydrogene bonds' + '\033[0m']
+        output(table_mmh, headers_mmh, title_mmh)
+        if args.tsv: tsv_fun (table_mmh, headers_mmh, 'Main_MainChaine')
 
-    if args.tsv: 
-        try : 
-            tsv_table = tabulate(table, headers, floatfmt=(".2f"), tablefmt="tsv")
-            text_file=open("test/results/table.tsv","w")
-            text_file.write(tsv_table)
-            text_file.close()
-        except : 
-            sys.stderr.write("Error in writing tsv file  \n")
+    if args.smhydrogenes:
+        headers_smh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
+        title_smh= ['\n ' + '\033[1m' + 'Side Chain -Main Chain Hydrogene bonds' + '\033[0m']
+        output(table_smh, headers_smh, title_smh)
+        if args.tsv: tsv_fun (table_smh, headers_smh, 'Side_MainChaine')
+
+    if args.sshydrogenes:
+        headers_ssh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
+        title_ssh = ['\n ' + '\033[1m' + 'Side Chain-Side Chain Hydrogene bonds' + '\033[0m']
+        output(table_ssh, headers_ssh, title_ssh)
+        if args.tsv: tsv_fun (table_ssh, headers_ssh, 'Side_SideChaine')
+        
 
     """ Repporting """
     #reporting(table)
