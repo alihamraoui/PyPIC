@@ -36,13 +36,13 @@ def output(table,headers,title):
     print(tabulate(table, headers, floatfmt=(".2f"), tablefmt="orgtbl"))
 
 def tsv_fun (table,headers,name): 
-    try : 
-        tsv_table = tabulate(table, headers, floatfmt=(".2f"), tablefmt="tsv")
-        text_file=open("test/results/{}_table.tsv".format(name),"w")
-        text_file.write(tsv_table)
-        text_file.close()
-    except : 
-        sys.stderr.write("Error in writing tsv file  \n")
+    #try : 
+    tsv_table = tabulate(table, headers, floatfmt=(".2f"), tablefmt="tsv")
+    text_file=open("test/results/{}_table.tsv".format(name),"w")
+    text_file.write(tsv_table)
+    text_file.close()
+    #except : 
+    #    sys.stderr.write("Error in writing tsv file  \n")
 
 
 def calc_dis (atom1,atom2, d, filter):
@@ -102,32 +102,6 @@ def hydrophobic(model):
     return inter_hydr
 
 
-def main_main_hydrogene(res1, res2) :
-    """
-    This function calculate hydrogene bonds
-    input : model = Bio.pdb object contain pdb structure.
-    output : list of donor and accepto, distance between them and angle between donor-H-acceptor.
-    """
-    mm_hydrogenes = []
-    if (res1.parent.id == res2.parent.id 
-        and res1.resname != 'HOH' and res2.resname != 'HOH'):
-        for donor in res1:
-            if donor.name == 'N':
-                for accept in res2 :
-                    if accept.name in ['O','OXT']:
-                        dist = calc_dis (donor, accept, 3.5, filter = False)
-                        if abs(res1.id[1] - res2.id[1]) >= 2 :
-                            if dist :
-                                if donor.parent.has_id('H'):
-                                    donor_H = donor.parent['H']
-                                    Dh = donor_H - accept
-                                    ang = get_angle(donor, donor_H, accept)
-                                    mm_hydrogenes.append([res1.resname, res1.id[1], donor.id ,res1.parent.id, res2.resname, res2.id[1] ,\
-                                                    accept.id , res2.parent.id, dist, Dh, ang],)
-                                else : pass
-    return mm_hydrogenes
-
-
 def get_hydrogene(donor):
     '''
     '''
@@ -157,7 +131,7 @@ def get_hydrogene(donor):
         if len(neib_Hydrogene) != 0 : 
             return neib_Hydrogene
         else : 
-            return [residue['H']]
+            return [donor]
 
 
 def check_msHydrogene (donor, accept, dis):
@@ -175,16 +149,43 @@ def check_msHydrogene (donor, accept, dis):
     return bond
 
 
+def main_main_hydrogene(res1, res2) :
+    """
+    This function calculate hydrogene bonds
+    input : model = Bio.pdb object contain pdb structure.
+    output : list of donor and accepto, distance between them and angle between donor-H-acceptor.
+    """
+    mm_hydrogenes = []
+    if (res1.parent.id == res2.parent.id # only intra-chain hydrogen bonds are supported
+        and abs(res1.id[1] - res2.id[1]) >= 2 # excluding hydrogen bonds between two close residues
+        and res1.resname != 'HOH' and res2.resname != 'HOH'): #excluding hydrogen bonds with water molecules
+        for donor in res1:
+            for accept in res2 :
+                if donor.name == 'N' and  accept.name in ['O','OXT']:
+                    dist = calc_dis (donor, accept, 3.5, filter = False)
+                    if dist :
+                        if donor.parent.has_id('H'):
+                            donor_H = donor.parent['H']
+                            Dh = donor_H - accept
+                            ang = get_angle(donor, donor_H, accept)
+                            mm_hydrogenes.append([res1.resname, res1.id[1], donor.id ,res1.parent.id, res2.resname, res2.id[1] ,\
+                                            accept.id , res2.parent.id, dist, Dh, ang],)
+                        else : pass
+    return mm_hydrogenes
+
+
 def side_main_hydrogene (res1, res2):
     '''
     '''
     sm_hydrogenes=[]
-    if res1.parent.id == res2.parent.id :
+    if (res1.parent.id == res2.parent.id 
+        and res1.resname != 'HOH' and res2.resname != 'HOH'):
         for atom1 in res1:
             for atom2 in res2 :
                 donor = atom1
                 accept = atom2
-                if ((donor.name == 'N' and res2.resname in side_acc and accept.name in side_acc[str(res2.resname)]) 
+                if ((donor.name == 'N' and res2.resname in side_acc 
+                and accept.name in side_acc[str(res2.resname)]) 
                 or (accept.name == 'O' and donor.name in side_all)):
                     dist = calc_dis (donor, accept, 3.5, filter= False)
                     if abs(res1.id[1] - res2.id[1]) >= 2 :
@@ -204,10 +205,10 @@ def side_side_hydrogene (res1,res2):
             for atom2 in res2 :
                 donor = atom1
                 accept = atom2
-                if (res1.resname in side_don and donor.name in side_don[str(res1.resname)] \
-                    and res2.resname in side_acc and accept.name in side_acc[str(res2.resname)]):
-                    dist = calc_dis (donor, accept, 3.5, filter =False)
-                    if abs(res1.id[1] - res2.id[1]) >= 2 :
+                if abs(res1.id[1] - res2.id[1]) >= 2 : # excluding hydrogen bonds between two close residues
+                    if (res1.resname in side_don and donor.name in side_don[str(res1.resname)] \
+                        and res2.resname in side_acc  and accept.name in side_acc[str(res2.resname)]):
+                        dist = calc_dis (donor, accept, 3.5, filter =False)
                         if dist :
                             smBond=check_msHydrogene (donor,accept, dist)
                             for bond in smBond :

@@ -1,0 +1,14 @@
+Residue  	  Position	donor  	Chain  	Residue  	  Position	acceptor  	Chain  	  d(don-acc)	  d(Hdon-acc)	  agnle(don-H-acc)
+GLY      	         1	N      	A      	GLU      	         4	OE1       	A      	        2.72	         2.72	            nan
+ILE      	         2	N      	A      	TYR      	        19	OH        	A      	        3.28	         3.24	             83.55
+GLU      	         4	OE1    	A      	GLY      	         1	O         	A      	        3.21	         3.21	            nan
+THR      	         8	OG1    	A      	VAL      	         3	O         	A      	        3.20	         3.68	             54.13
+SER      	         9	OG     	A      	GLU      	         4	O         	A      	        2.70	         1.75	            157.05
+SER      	         9	OG     	A      	GLN      	         5	O         	A      	        2.99	         3.28	             64.70
+GLN      	        15	N      	A      	SER      	        12	OG        	A      	        3.14	         2.17	            162.60
+GLN      	         4	NE2    	B      	PHE      	         1	O         	B      	        3.01	         2.07	            156.50
+GLN      	         4	NE2    	B      	PHE      	         1	O         	B      	        3.01	         3.59	             47.72
+CYS      	        19	SG     	B      	LEU      	        15	O         	B      	        3.33	         3.33	            nan
+ARG      	        22	NH1    	B      	VAL      	        18	O         	B      	        3.40	         2.82	            117.49
+ARG      	        22	NH1    	B      	VAL      	        18	O         	B      	        3.40	         3.45	             78.61
+ARG      	        22	NE     	B      	CYS      	        19	O         	B      	        3.44	         2.68	            133.24

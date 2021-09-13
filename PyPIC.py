@@ -1,6 +1,6 @@
 from Packages.lib import *
 import argparse
-import sys
+import sys, os
 
 def parse_args() :
     '''
@@ -50,12 +50,32 @@ def main ():
     if args.pdbfile[-4:] == '.pdb':
         try : 
             model = parse_PDB(args.pdbfile)
+            try : 
+                chain = model.get_list()
+                test = chain[0]
+                test[2]['H']
+            except :
+                print("Adding Hydrogens to PDB ...")
+                os.system ('reduce -version')
+                cmd ='reduce ' + args.pdbfile + ' -Quiet > '+ args.pdbfile+'h'
+                pdbh=os.system (cmd)
+                pdbh = args.pdbfile+'h'
+                model = parse_PDB(pdbh)
         except : 
             sys.stderr.write("Error attempting to load  %s\n" % args.pdbfile )
             sys.exit(1)
     else:
         sys.stderr.write("Error : structure file extension not recognized, it needs to be .pdb \n")
         sys.exit(1)
+    try : 
+        chain = model.get_list()
+        test = chain[0]
+        test[2]['H']
+    except :
+        cmd ='reduce ' + ' my3i40.pdb'
+        os.system (cmd)
+
+
 
     table_mmh=[]
     table_smh=[]
@@ -89,19 +109,25 @@ def main ():
         headers_mmh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
         title_mmh = ['\n ' + '\033[1m' + 'Main Chain-Main Chain Hydrogene bonds' + '\033[0m']
         output(table_mmh, headers_mmh, title_mmh)
-        if args.tsv: tsv_fun (table_mmh, headers_mmh, 'Main_MainChaine')
+        if args.tsv:
+            outfile = 'Main_MainChaine_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_mmh, headers_mmh, outfile)
 
     if args.smhydrogenes:
         headers_smh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
         title_smh= ['\n ' + '\033[1m' + 'Side Chain -Main Chain Hydrogene bonds' + '\033[0m']
         output(table_smh, headers_smh, title_smh)
-        if args.tsv: tsv_fun (table_smh, headers_smh, 'Side_MainChaine')
+        if args.tsv: 
+            outfile = 'Side_MainChaine_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_smh, headers_smh, outfile)
 
     if args.sshydrogenes:
         headers_ssh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
         title_ssh = ['\n ' + '\033[1m' + 'Side Chain-Side Chain Hydrogene bonds' + '\033[0m']
         output(table_ssh, headers_ssh, title_ssh)
-        if args.tsv: tsv_fun (table_ssh, headers_ssh, 'Side_SideChaine')
+        if args.tsv: 
+            outfile = 'Side_SideChaine_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_ssh, headers_ssh, outfile)
         
 
     """ Repporting """
