@@ -39,6 +39,9 @@ def parse_PDB(file):
 
 def output(table,headers,title):
     '''
+    This function print the results tables
+    input : lists.
+    output : tables of combaned lists.
     '''
     tabulate(table, headers, floatfmt=(".2f"), tablefmt="fancy_grid")
     print(tabulate([],headers=title, tablefmt="pipe"))
@@ -46,6 +49,11 @@ def output(table,headers,title):
 
 
 def tsv_fun (table,headers,name): 
+    '''
+    This function output a tsv file of results
+    input : lists.
+    output : tsv file.
+    '''
     #try : 
     tsv_table = tabulate(table, headers, floatfmt=(".2f"), tablefmt="tsv")
     text_file=open("test/results/{}_table.tsv".format(name),"w")
@@ -55,15 +63,11 @@ def tsv_fun (table,headers,name):
     #    sys.stderr.write("Error in writing tsv file  \n")
 
 
-def get_residues(pdb):
+def get_residues(model):
     '''
+    this function return a list of residues objects containing in a PDB structure object
     '''
     residues = []
-    parser=PDBParser()
-    structure_id="1c8ca"
-    filename= pdb+".pdb"
-    structure = parser.get_structure(structure_id, filename)
-    model = structure[0]
     for chain in model.get_list():
         for residue in chain.get_list():
             residues.append(residue)
@@ -89,10 +93,97 @@ def calc_dis (atom1,atom2, d, filter):
 
 
 def get_angle(atom1, H, atom2):
+    '''
+    This function calculate the angle between three points
+    input : atoms coodonates = list of coordonates x,y,z of atomes.
+    output : float: angle between three atoms.
+    '''
     vecA = atom1.coord - H.coord
     vecB = atom2.coord - H.coord
     angle = np.arccos(np.dot(vecA,vecB) / (np.linalg.norm(vecA) * np.linalg.norm(vecB)))
     return degrees(angle)
+
+
+def get_hydrogene(donor):
+    '''
+    This function return the hydrogen atom in hydrogen bond
+    input : donor = Bio.pdb object contain the atom donor of hydrogen.
+    output : list of atom : Bio.pdb object, the hydrogenes of bond.
+    '''
+    neib_Hydrogene=[]
+    residue = donor.parent
+    if donor.name == 'N':
+        if residue.has_id('H'):
+            neib_Hydrogene.append(residue['H'])
+            return neib_Hydrogene
+        else : 
+            return [donor]
+    else :
+        atoms = donor.parent.get_list()
+        if len(donor.name) > 2:
+            idx = len(donor.name)-1
+        else : 
+            idx = len(donor.name)
+        Hname = 'H'+ donor.name[1:idx]
+        for a in atoms :
+            if len(a.name) > 3:
+                Hname = 'H'+ donor.name[1:]
+                if a.name [:(idx+1)] == Hname:
+                    neib_Hydrogene.append(a)
+            else :
+                if a.name [:idx] == Hname:
+                    neib_Hydrogene.append(a)
+        if len(neib_Hydrogene) != 0 : 
+            return neib_Hydrogene
+        else : 
+            return [donor]
+
+def get_carbon(accept):
+    '''
+    This function return the neibor carbon of acceptor atom in hydrogen bond
+    input : acceptor = Bio.pdb object contain the atom acceptor of hydrogen.
+    output : atom : Bio.pdb object, the neibor carbon of acceptor.
+    '''
+    residue = accept.parent
+    neib_carbon = residue['C']
+    if accept.name == 'O':
+        return neib_carbon
+    else :
+        atoms = accept.parent.get_list()
+        if len(accept.name) > 2:
+            idx = len(accept.name)-1
+        else : 
+            idx = len(accept.name)
+        Hname = 'C'+ accept.name[1:idx]
+        for a in atoms :
+            if len(a.name) > 3:
+                Hname = 'C'+ accept.name[1:]
+                if a.name [:(idx+1)] == Hname:
+                    neib_carbon = a
+            else :
+                if a.name [:idx] == Hname:
+                    neib_carbon = a
+        return residue['C']
+
+def center_mass(res):
+    '''
+    Calculate the center of mass of a Phenyl ring in aromatic residue
+    res: biopython class residue
+    return: coordonates of center of mass (tuple)
+    '''
+    sum_coord = 0
+    center_mass = 0
+    if res.resname in ["PHE", "TYR"]:
+        for atom in res:
+            if atom.name in aromatic[res.resname]:
+                sum_coord += atom.coord
+        center_mass = sum_coord / 6
+    elif res.resname == "TRP":
+        for atom in res:
+            if atom.name in aromatic[res.resname]:
+                sum_coord += atom.coord
+        center_mass = sum_coord / 6
+    return center_mass
 
 
 def hydrophobic(model):
@@ -127,78 +218,31 @@ def hydrophobic(model):
     return inter_hydr
 
 
-def get_hydrogene(donor):
-    '''
-    '''
-    neib_Hydrogene=[]
-    residue = donor.parent
-    if donor.name == 'N':
-        if residue.has_id('H'):
-            neib_Hydrogene.append(residue['H'])
-            return neib_Hydrogene
-        else : 
-            return [donor]
-    else :
-        atoms = donor.parent.get_list()
-        if len(donor.name) > 2:
-            idx = len(donor.name)-1
-        else : 
-            idx = len(donor.name)
-        Hname = 'H'+ donor.name[1:idx]
-        for a in atoms :
-            if len(a.name) > 3:
-                Hname = 'H'+ donor.name[1:]
-                if a.name [:(idx+1)] == Hname:
-                    neib_Hydrogene.append(a)
-            else :
-                if a.name [:idx] == Hname:
-                    neib_Hydrogene.append(a)
-        if len(neib_Hydrogene) != 0 : 
-            return neib_Hydrogene
-        else : 
-            return [donor]
-
-
-def center_mass(res):
-    '''
-    Calculate the center of mass of a Phenyl ring in aromatic residue
-    res: biopython class residue
-    return: coordonates of center of mass (tuple)
-    '''
-    sum_coord = 0
-    center_mass = 0
-    if res.resname in ["PHE", "TYR"]:
-        for atom in res:
-            if atom.name in aromatic[res.resname]:
-                sum_coord += atom.coord
-        center_mass = sum_coord / 6
-    elif res.resname == "TRP":
-        for atom in res:
-            if atom.name in aromatic[res.resname]:
-                sum_coord += atom.coord
-        center_mass = sum_coord / 6
-    return center_mass
-
-
 def check_msHydrogene (donor, accept, dis):
     '''
+    This function checks for hydrogene bonds
+    input : donor, acceptor = Bio.pdb object contain atom of residues object.
+    distance : distance between two atoms
+    output : list of donor and accepto, distance between them and angle and diedral angle between donor-H-acceptor.
     '''
     bond = []
     res1 = donor.parent
     res2 = accept.parent
     donor_H = get_hydrogene(donor)
+    accept_C = get_carbon(accept)
+    ang_di = get_angle(donor, accept, accept_C)
     for H in donor_H : 
         Dh = H - accept
         ang = get_angle(donor, H, accept)
         bond.append([res1.resname, res1.id[1], donor.id ,res1.parent.id, res2.resname, res2.id[1] ,\
-                            accept.id , res2.parent.id, dis, Dh, ang]) 
+                            accept.id , res2.parent.id, dis, Dh, ang, ang_di]) 
     return bond
 
 
 def main_main_hydrogene(res1, res2) :
     """
-    This function calculate hydrogene bonds
-    input : model = Bio.pdb object contain pdb structure.
+    This function calculate main chain - main chain hydrogene bonds
+    input : res1;res2 = Bio.pdb object contain residues of PDB.
     output : list of donor and accepto, distance between them and angle between donor-H-acceptor.
     """
     mm_hydrogenes = []
@@ -222,6 +266,9 @@ def main_main_hydrogene(res1, res2) :
 
 def side_main_hydrogene (res1, res2):
     '''
+    This function calculate main chain - side chain hydrogene bonds
+    input : res1;res2 = Bio.pdb object contain residues of PDB.
+    output : list of donor and accepto, distance between them and angle between donor-H-acceptor
     '''
     sm_hydrogenes=[]
     if (res1.parent.id == res2.parent.id 
@@ -244,6 +291,9 @@ def side_main_hydrogene (res1, res2):
 
 def side_side_hydrogene (res1,res2):
     '''
+    This function calculate side chain - side chain hydrogene bonds
+    input : res1;res2 = Bio.pdb object contain residues of PDB.
+    output : list of donor and accepto, distance between them and angle between donor-H-acceptor
     '''
     ss_hydrogenes= []
     if res1.parent.id == res2.parent.id :
@@ -263,7 +313,9 @@ def side_side_hydrogene (res1,res2):
 
 def arom_arom (model):
     '''
-    
+    This function calculate aromatic aromatic interaction
+    input : model = Bio.pdb object contain PDB structure.
+    output : list of interacting residues, distance between them.
     '''
     arom_arom = []
     for chain in model.get_list():
@@ -278,6 +330,9 @@ def arom_arom (model):
 
 def arom_sulf (model):
     '''
+    This function calculate aromatic - sulphure interactions 
+    input : model = Bio.pdb object contain PDB structure.
+    output : list of interacting residues, distance between them.
     '''
     arom_sulf =[]
     for chain in model.get_list():
@@ -296,6 +351,9 @@ def arom_sulf (model):
 
 def cation_pi (model):
     '''
+    This function calculate Pi cation interactions 
+    input : model = Bio.pdb object contain PDB structure.
+    output : list of interacting residues, distance between them.
     '''
     pi= []
     for chain in model.get_list():
@@ -309,7 +367,7 @@ def cation_pi (model):
                         if atom.name in cationic[res_cation.resname]:
                             d = np.linalg.norm(atom.coord - com_arom)
                             #angle = get_angle(atom,com_arom,res_arom['CD2'])
-                    #print(atom_cation.name , d)
+                            #print(atom_cation.name , d)
                             if d <= 10:
                                 pi.append([res1.id[1], atom.name , res1.resname, res2.id[1], res2.resname, d ]) # angle
     return pi
@@ -317,6 +375,9 @@ def cation_pi (model):
 
 def ionic_interactions (model):
     '''
+    This function calculate ionic interactions 
+    input : model = Bio.pdb object contain PDB structure.
+    output : list of interacting residues, distance between them.
     '''
     ionic_interactions =[]
     for chain in model.get_list():
@@ -340,8 +401,11 @@ def ionic_interactions (model):
 
 def disulf(model):
     '''
+    This function calculate disulphide bridges 
+    input : model = Bio.pdb object contain PDB structure.
+    output : list of interacting residues, distance between them.
     '''
-    residues = get_residues('3i40')
+    residues = get_residues(model)
     disulphides =[]
     for i, res1 in enumerate(residues):
         for res2 in residues[i+1:]: 

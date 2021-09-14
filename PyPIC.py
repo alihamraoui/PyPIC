@@ -19,9 +19,6 @@ def parse_args() :
     parser.add_argument('-hydrophob', dest='hydrophob', action='store_true',
                         help='Checking for Hydrophobic Interaction')
 
-    parser.add_argument('-disulphide', metavar='', dest='disulph', type=str,
-                        help='Checking for Disulphide Bridges')
-
     parser.add_argument('-mmh', dest='mmhydrogenes', action='store_true',
                         help='Checking for main chain-main chain Hydrogen bond')
 
@@ -50,7 +47,7 @@ def parse_args() :
                         help='Export the result tables in tsv format')
 
     parser.add_argument('-option', metavar='option', dest='intra', type=str, default="both", choices=['intra', 'inter', 'both'],
-                        help='Which type of interactions? (intra, inter, both). e.g : For "inter" chain (e.g. hydrophobics interaction) only interaction between two different chains will be listed. choose reverse.')
+                        help='Which type of interactions? (intra, inter, both). e.g : For "inter" chain (e.g. hydrophobics interaction) only interaction between two different chains will be listed.')
     
     parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     
@@ -127,7 +124,8 @@ def main ():
             tsv_fun (table_mmh, headers_mmh, outfile)
 
     if args.smhydrogenes:
-        headers_smh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
+        headers_smh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor',
+                     'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)','ang_diedre']
         title_smh= ['\n ' + '\033[1m' + 'Side Chain -Main Chain Hydrogene bonds' + '\033[0m']
         output(table_smh, headers_smh, title_smh)
         if args.tsv: 
@@ -135,7 +133,8 @@ def main ():
             tsv_fun (table_smh, headers_smh, outfile)
 
     if args.sshydrogenes:
-        headers_ssh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor', 'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)']
+        headers_ssh=['Residue', 'Position', 'donor', 'Chain','Residue', 'Position','acceptor',
+                     'Chain', 'd(don-acc)', 'd(Hdon-acc)', 'agnle(don-H-acc)','ang_di']
         title_ssh = ['\n ' + '\033[1m' + 'Side Chain-Side Chain Hydrogene bonds' + '\033[0m']
         output(table_ssh, headers_ssh, title_ssh)
         if args.tsv: 
@@ -186,6 +185,9 @@ def main ():
         if args.tsv: 
             outfile = 'disulf_' + str(args.pdbfile)[-8:-4] 
             tsv_fun (table_disulf, headers_disulf, outfile)
+    else :
+        print ('PyPIC [-h] -pdb File.pdb [-hydrophob] [-disulphide] [-mmh] [-smh] [-ssh] [--version]')
+        print ('Please tape PyPIC -h for help')
 
     """ Repporting """
     #reporting(table)
