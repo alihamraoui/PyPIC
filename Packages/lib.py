@@ -5,7 +5,7 @@ import sys
 from math import degrees
 from tabulate import tabulate
 
-#main = ["N", "O", "OXT"]
+
 side_all = ["ND1", "ND2", "NE", "NE1", "NE2", "NH1", "NH2", "NZ", "OD1", "OD2", "OE1",
             "OE2", "OG", "OG1", "OH", "SD", "SG"]
 side_don = {"ARG": ["NE", "NH1", "NH2"], "ASN": ["ND2"], "CYS": ["SG"],
@@ -14,6 +14,15 @@ side_don = {"ARG": ["NE", "NH1", "NH2"], "ASN": ["ND2"], "CYS": ["SG"],
 side_acc = {"ASN": ["OD1"], "ASP": ["OD1", "OD2"], "GLN": ["OE1"],
             "GLU": ["OE1", "OE2"], "HIS": ["ND1", "NE2"], "MET": ["SD"], "SER": ["OG"],
             "THR": ["OG1"], "TYR": ["OH"]}
+aromatic = {"PHE" :["CG", "CD1", "CE1", "CZ", "CE2", "CD2"],
+             "TYR":["CG", "CD1", "CE1", "CZ", "CE2", "CD2"], 
+             "TRP":["CD2", "CE2", "CZ2", "CH2", "CZ3", "CE3"] }
+sulf = {"MET":'SD',
+        "CYS":'SG'}
+cationic= {"ARG":["CZ"],
+           "LYS":["NZ"]}
+ionic = {"cations":["ARG","LYS","HIS"],
+         "anions":["ASP","GLU"]}
 
 
 def parse_PDB(file):
@@ -35,6 +44,7 @@ def output(table,headers,title):
     print(tabulate([],headers=title, tablefmt="pipe"))
     print(tabulate(table, headers, floatfmt=(".2f"), tablefmt="orgtbl"))
 
+
 def tsv_fun (table,headers,name): 
     #try : 
     tsv_table = tabulate(table, headers, floatfmt=(".2f"), tablefmt="tsv")
@@ -43,6 +53,21 @@ def tsv_fun (table,headers,name):
     text_file.close()
     #except : 
     #    sys.stderr.write("Error in writing tsv file  \n")
+
+
+def get_residues(pdb):
+    '''
+    '''
+    residues = []
+    parser=PDBParser()
+    structure_id="1c8ca"
+    filename= pdb+".pdb"
+    structure = parser.get_structure(structure_id, filename)
+    model = structure[0]
+    for chain in model.get_list():
+        for residue in chain.get_list():
+            residues.append(residue)
+    return residues
 
 
 def calc_dis (atom1,atom2, d, filter):
@@ -134,6 +159,27 @@ def get_hydrogene(donor):
             return [donor]
 
 
+def center_mass(res):
+    '''
+    Calculate the center of mass of a Phenyl ring in aromatic residue
+    res: biopython class residue
+    return: coordonates of center of mass (tuple)
+    '''
+    sum_coord = 0
+    center_mass = 0
+    if res.resname in ["PHE", "TYR"]:
+        for atom in res:
+            if atom.name in aromatic[res.resname]:
+                sum_coord += atom.coord
+        center_mass = sum_coord / 6
+    elif res.resname == "TRP":
+        for atom in res:
+            if atom.name in aromatic[res.resname]:
+                sum_coord += atom.coord
+        center_mass = sum_coord / 6
+    return center_mass
+
+
 def check_msHydrogene (donor, accept, dis):
     '''
     '''
@@ -214,3 +260,94 @@ def side_side_hydrogene (res1,res2):
                             for bond in smBond :
                                 ss_hydrogenes.append(bond)
     return ss_hydrogenes
+
+def arom_arom (model):
+    '''
+    
+    '''
+    arom_arom = []
+    for chain in model.get_list():
+        for i, res1 in enumerate(chain.get_list()):
+            for res2 in chain.get_list()[i + 1:]:  
+                com1 = np.array(center_mass(res1))    
+                com2 = np.array(center_mass(res2))
+                d = np.linalg.norm(com1 - com2)
+                if (d > 4.5) and (d < 7):
+                    arom_arom.append([res1.id[1], res1.resname,res1.parent.id, res2.id[1], res2.resname,res2.parent.id, d]) 
+    return arom_arom
+
+def arom_sulf (model):
+    '''
+    '''
+    arom_sulf =[]
+    for chain in model.get_list():
+        for res1 in chain.get_list():
+            for res2 in chain.get_list(): 
+                if res1.resname in sulf and res2.resname in aromatic :
+                    res_sulf=res1
+                    res_arom=res2
+                    com_arom = np.array(center_mass(res_arom))    
+                    sulf_atom = res_sulf[sulf[res_sulf.resname]]
+                    d = np.linalg.norm(com_arom - sulf_atom.coord)
+                    if d <= 5.3:
+                        arom_sulf.append([res1.id[1], res1.resname, res2.id[1], res2.resname, d])
+    return arom_sulf
+
+
+def cation_pi (model):
+    '''
+    '''
+    pi= []
+    for chain in model.get_list():
+        for res1 in chain.get_list():
+            for res2 in chain.get_list(): 
+                if res1.resname in cationic and res2.resname in aromatic :
+                    res_cation=res1
+                    res_arom=res2
+                    com_arom = np.array(center_mass(res_arom))   
+                    for atom in res_cation:
+                        if atom.name in cationic[res_cation.resname]:
+                            d = np.linalg.norm(atom.coord - com_arom)
+                            #angle = get_angle(atom,com_arom,res_arom['CD2'])
+                    #print(atom_cation.name , d)
+                            if d <= 10:
+                                pi.append([res1.id[1], atom.name , res1.resname, res2.id[1], res2.resname, d ]) # angle
+    return pi
+
+
+def ionic_interactions (model):
+    '''
+    '''
+    ionic_interactions =[]
+    for chain in model.get_list():
+        for res1 in chain.get_list():
+            for res2 in chain.get_list(): 
+                if res1.resname in ionic["cations"] and res2.resname in ionic["anions"] :
+                    cation = res1
+                    anion = res2  
+                    for atom1 in res1 :
+                        for atom2 in res2 :
+                            if ('N' in atom1.name and 'O' in atom2.name 
+                                and len(atom1.name) > 1 and len(atom2.name)>1 
+                                and atom1.name != "CA" and atom2.name != "CA"):
+                                dist = np.linalg.norm(atom1 - atom2)
+                                if dist <= 6:
+                                    inter = [cation.id[1], cation.parent.id ,cation.resname, anion.id[1], anion.resname, anion.parent.id]
+                                    if  inter not in ionic_interactions :
+                                            ionic_interactions.append(inter)
+    return ionic_interactions
+
+
+def disulf(model):
+    '''
+    '''
+    residues = get_residues('3i40')
+    disulphides =[]
+    for i, res1 in enumerate(residues):
+        for res2 in residues[i+1:]: 
+            if res1.resname == 'CYS' and res2.resname == 'CYS' :
+                dist = np.linalg.norm(res1['SG'] - res2['SG'])
+                if dist <= 2.2:
+                    bridge = [res1.id[1],res1.resname,  res1.parent.id , res2.id[1], res2.resname, res2.parent.id , dist]
+                    disulphides.append(bridge)
+    return disulphides

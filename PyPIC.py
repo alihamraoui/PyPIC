@@ -31,6 +31,21 @@ def parse_args() :
     parser.add_argument('-ssh', dest='sshydrogenes', action='store_true',
                         help='Checking for side chain-side chain Hydrogen bond')
 
+    parser.add_argument('-aromarom', dest='aromarom', action='store_true',
+                        help='Checking for aromatic-aromatic interactions')
+
+    parser.add_argument('-aromsulf', dest='aromsulf', action='store_true',
+                        help='Checking for aromatic-sulphur interactions')
+
+    parser.add_argument('-cationpi', dest='pi', action='store_true',
+                        help='Checking for cation Pi interactions')
+
+    parser.add_argument('-disulf', dest='disulf', action='store_true',
+                        help='Checking for disulphide bridges')
+
+    parser.add_argument('-ionic', dest='ionic', action='store_true',
+                        help='Checking for ionic interactions')
+
     parser.add_argument('-tsv', dest='tsv', action='store_true',
                         help='Export the result tables in tsv format')
 
@@ -74,8 +89,6 @@ def main ():
     except :
         cmd ='reduce ' + ' my3i40.pdb'
         os.system (cmd)
-
-
 
     table_mmh=[]
     table_smh=[]
@@ -128,7 +141,51 @@ def main ():
         if args.tsv: 
             outfile = 'Side_SideChaine_' + str(args.pdbfile)[-8:-4] 
             tsv_fun (table_ssh, headers_ssh, outfile)
-        
+    
+    if args.aromarom :
+        table_aromarom=arom_arom(model)
+        headers_aromarom=['Position','Residue', 'Chain', 'Position','Residue', 'Chain', 'Distance (A)']
+        title_aromarom = ['\n ' + '\033[1m' + 'Aromatic atomatic Interactions' + '\033[0m']
+        output(table_aromarom, headers_aromarom, title_aromarom)
+        if args.tsv: 
+            outfile = 'arom_arom_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_aromarom, headers_aromarom, outfile)
+
+    if args.aromsulf:
+        table_aromsulf=arom_sulf(model)
+        headers_aromsulf=['Position','Residue', 'Chain', 'Position','Residue', 'Chain', 'Distance (A)']
+        title_aromsulf = ['\n ' + '\033[1m' + 'Aromatic silphur Interactions' + '\033[0m']
+        output(table_aromsulf, headers_aromsulf, title_aromsulf)
+        if args.tsv: 
+            outfile = 'arom_sulf_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_aromsulf, headers_aromsulf, outfile)
+
+    if args.pi:
+        table_pi=cation_pi(model)
+        headers_pi=['Position','Atom', 'Residue','position','Residue', 'Distance (A)']
+        title_pi= ['\n ' + '\033[1m' + 'Cation Pi Interactions' + '\033[0m']
+        output(table_pi, headers_pi, title_pi)
+        if args.tsv: 
+            outfile = 'Cation_pi_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_pi, headers_pi, outfile)
+    
+    if args.ionic:
+        table_ionic=ionic_interactions(model)
+        headers_ionic=['Position','Residue','Chain','Position', 'Residue', 'Chain']
+        title_ionic= ['\n ' + '\033[1m' + 'Ionic Interactions' + '\033[0m']
+        output(table_ionic, headers_ionic, title_ionic)
+        if args.tsv: 
+            outfile = 'ionic_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_ionic, headers_ionic, outfile)
+
+    if args.disulf:
+        table_disulf=disulf(model)
+        headers_disulf=['Position','Residue','Chain','Position', 'Residue', 'Chain','distance']
+        title_disulf= ['\n ' + '\033[1m' + 'DISULPHIDE BRIDGES WITHIN 2.2 A ' + '\033[0m']
+        output(table_disulf, headers_disulf, title_disulf)
+        if args.tsv: 
+            outfile = 'disulf_' + str(args.pdbfile)[-8:-4] 
+            tsv_fun (table_disulf, headers_disulf, outfile)
 
     """ Repporting """
     #reporting(table)
