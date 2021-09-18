@@ -12,16 +12,16 @@
 
 ```c
 git clone https://github.com/alihamraoui/PyPIC.git
-conda env create -f environment.yml
+conda env create -f requirements.yml
 ```
 
 ## Example
 
 ```c
-python PyPIC.py -pdb test/data/pdb/1c8ca.pdb  -mmh -smh -ssh -tsv 
+python PyPIC -pdb test/data/pdb/1c8ca.pdb  -mmh -smh -ssh -tsv 
 ```
 
-The above example computes the hydrogene bond in `1c8ca.pdb`, displays the results, and writes them in the file `main_main_chain_1c8ca.tsv`
+The above example computes the hydrogene bond in `1c8ca.pdb`, displays the results, and writes them in the tsv files `main_main_chain_1c8ca.tsv`,`main_side_chain_1c8ca.tsv` and `side_side_chain_1c8ca.tsv`.
 
 ## List of interactions available
 
