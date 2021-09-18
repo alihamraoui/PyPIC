@@ -1,4 +1,4 @@
-# PyPIC : Protein interaction calculator 
+# PyPIC : Protein interactions calculator 
 
 **PyPIC** is a tool designed to calculate non-covalent interactions in a `.pdb` file.
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/alihamraoui/PyPIC/HEAD) 
