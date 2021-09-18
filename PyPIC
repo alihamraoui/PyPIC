@@ -79,13 +79,6 @@ def main ():
     else:
         sys.stderr.write("Error : structure file extension not recognized, it needs to be .pdb \n")
         sys.exit(1)
-    try : 
-        chain = model.get_list()
-        test = chain[0]
-        test[2]['H']
-    except :
-        cmd ='reduce ' + ' my3i40.pdb'
-        os.system (cmd)
 
     table_mmh=[]
     table_smh=[]
